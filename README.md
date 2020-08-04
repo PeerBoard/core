@@ -14,7 +14,6 @@ npm install @peerboard/core
 ```jsx
 // ...
 import { createForum } from '@peerboard/core';
-import { withRouter } from 'react-router-dom';
 
 class Forum extends React.Component {
   containerRef = React.createRef();
