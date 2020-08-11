@@ -67,6 +67,8 @@ export default {
     const opts: Options = {
       resize: true,
       hideMenu: true,
+      scrollTarget: 'top',
+      baseURL: options.baseURL || `https://peerboard.${window.document.location.hostname}`,
       ...options
     };
     return loadSdk(options.sdkURL || PEERBOARD_EMBED_SDK_URL).then(() => {
