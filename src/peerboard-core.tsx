@@ -11,6 +11,7 @@ interface Options {
   onTitleChanged?: (title: string) => void;
   onCustomProfile?: (url: string) => void;
   onReady?: () => void;
+  onFail?: () => void;
 
   // Dev only
   baseURL?: string;
@@ -76,6 +77,11 @@ export default {
         throw new Error("Forum should be loaded at the moment.");
       }
       forumSDK.createForum(forumID, container, opts);
+    }).catch((err) => {
+      console.error("Error creating forum: ", err)
+      if (options.onFail) {
+        options.onFail();
+      }
     });
   }
 };
