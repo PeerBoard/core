@@ -43,6 +43,11 @@ class Forum extends React.Component {
             forumReady: true,
           });
         },
+        onFail: () => {
+          this.setState({
+            error: "Failed to load forum",
+          });
+        },
         onTitleChanged: (title) => window.document.title = "Community: " + title,
         onPathChanged: (location) => {
           // Browser counts iframe state changes.
@@ -51,10 +56,6 @@ class Forum extends React.Component {
         onCustomProfile: (url) => {
           this.props.history.push(url.replace(window.location.origin, ''));
         },
-      }).catch(err => {
-        this.setState({
-          error: "Failed to load forum",
-        });
       });
     })
   }
