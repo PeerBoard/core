@@ -1,41 +1,76 @@
-const PEERBOARD_EMBED_SDK_URL = 'https://static.peerboard.org/embed/embed.js';
+const PEERBOARD_EMBED_SDK_URL = 'https://static.peerboard.com/embed/embed.js';
 
 // TODO: Expose our internal embed sdk typings
-export type ScrollTarget = 'iframe' | 'top';
-
 interface Options {
   prefix?: string;
   jwtToken?: string;
-  minHeight?: string;
+  // Number is the main approach *px string is legacy
+  minHeight?: number|string;
   onPathChanged?: (forumPath: string) => void;
   onTitleChanged?: (title: string) => void;
   onCustomProfile?: (url: string) => void;
   onReady?: () => void;
   onFail?: () => void;
 
+  // If something is broken with requested path autodetect
+  path?: string;
+
   // Dev only
   baseURL?: string;
   sdkURL?: string;
   resize?: boolean;
-  scrollTarget?: ScrollTarget;
   hideMenu?: boolean;
+}
+
+interface InternalSDKOptions {
+  prefix?: string;
+  prefixProxy?: string;
+  baseURL?: string;
+
+  // Authentication parameters
+  jwtToken?: string;
+  wpPayload?: string;
+
+  path?: string;
+
+  // Auto resize iframe to occupy
+  // all necessary space to render full page
+  // i.e. make it behave like simple div
+  resize?: boolean;
+  // Number is the main approach *px string is legacy
+  minHeight?: string|number;
+  hideMenu?: boolean;
+  disableViewportSync?: boolean;
+
+  onPathChanged?: (forumPath: string) => void;
+  onTitleChanged?: (title: string) => void;
+  onCustomProfile?: (url: string) => void;
+  onReady?: () => void;
+  onFail?: () => void;
+
+  // Internal parameters
+  scrollToTopOnNavigationChanged?: boolean;
+  sendReferrer?: boolean;
 }
 
 export interface ForumAPI {
   destroy(): void;
 }
 
-export interface PeerboardSDK {
+export interface PeerboardSDKEmbedScript {
   createForum (
     forumID: number,
     container: HTMLElement,
-    options: Options,
+    options: InternalSDKOptions,
   ): ForumAPI
 }
 
-let forumSDK: PeerboardSDK | null = null;
+const trimLeftSlash = (str: string): string =>
+  str.startsWith('/') ? str.substr(1) : str;
+
+let forumSDK: PeerboardSDKEmbedScript | null = null;
 let loadingSDK: Promise<void> | null = null;
-const loadSdk = (embedSDKURL?: string) => {
+export const loadSdk = (embedSDKURL?: string) => {
   if (forumSDK !== null) {
     return Promise.resolve();
   }
@@ -62,26 +97,37 @@ const loadSdk = (embedSDKURL?: string) => {
   });
 }
 
-export default {
-  loadSdk: loadSdk,
-  createForum(forumID: number, container: HTMLElement, options: Options) {
-    const opts: Options = {
-      resize: true,
-      hideMenu: true,
-      scrollTarget: 'top',
-      baseURL: options.baseURL || `https://peerboard.${window.document.location.hostname}`,
-      ...options
-    };
-    return loadSdk(options.sdkURL || PEERBOARD_EMBED_SDK_URL).then(() => {
-      if (!forumSDK) {
-        throw new Error("Forum should be loaded at the moment.");
-      }
-      forumSDK.createForum(forumID, container, opts);
-    }).catch((err) => {
-      console.error("Error creating forum: ", err)
-      if (options.onFail) {
-        options.onFail();
-      }
-    });
+const defaultOptions: Readonly<Options> = {
+  resize: true,
+  hideMenu: true,
+  baseURL: `https://peerboard.${window.document.location.hostname}`,
+  sdkURL: PEERBOARD_EMBED_SDK_URL,
+};
+
+export const createForum = (forumID: number, container: HTMLElement, options: Readonly<Options>) => {
+  const opts: InternalSDKOptions = {
+    ...defaultOptions,
+    scrollToTopOnNavigationChanged: true,
+  };
+
+  if (options.prefix) {
+    // Auto resolve redirect
+    const prefixRgx = new RegExp(`^\/${trimLeftSlash(options.prefix)}`);
+    const pathnameWithoutPrefix = document.location.pathname.replace(prefixRgx, '');
+    opts.path = pathnameWithoutPrefix + document.location.search + document.location.hash;
   }
+
+  Object.assign(opts, options);
+
+  return loadSdk(options.sdkURL).then(() => {
+    if (!forumSDK) {
+      throw new Error("Forum should be loaded at the moment.");
+    }
+    forumSDK.createForum(forumID, container, opts);
+  }).catch((err) => {
+    console.error("Error creating forum: ", err)
+    if (options.onFail) {
+      options.onFail();
+    }
+  });
 };
