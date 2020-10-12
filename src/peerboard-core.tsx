@@ -102,6 +102,8 @@ const defaultOptions: Readonly<Options> = {
   hideMenu: true,
   baseURL: `https://peerboard.${window.document.location.hostname}`,
   sdkURL: PEERBOARD_EMBED_SDK_URL,
+  onTitleChanged: title => window.document.title = title,
+  onPathChanged: newPath => window.history.replaceState({}, window.document.title, newPath)
 };
 
 export const createForum = (forumID: number, container: HTMLElement, options: Readonly<Options>) => {
