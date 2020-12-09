@@ -1,6 +1,6 @@
 {
   "name": "@peerboard/core",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "peerboard.com frontend components",
   "keywords": [
     "forum",
@@ -9,7 +9,6 @@
     "component"
   ],
   "main": "dist/peerboard-core.cjs.js",
-  "module": "dist/peerboard-core.cjs.js",
   "typings": "dist/types/peerboard-core.d.ts",
   "files": [
     "dist"
