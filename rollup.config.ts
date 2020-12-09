@@ -11,7 +11,8 @@ const libraryName = 'peerboard-core'
 export default {
   input: `src/${libraryName}.tsx`,
   output: [
-    { file: pkg.module, format: 'cjs', sourcemap: true },
+    { file: pkg.main, format: 'cjs', sourcemap: true },
+    { file: 'dist/peerboard-core.umd.js', format: 'umd', sourcemap: true, name: 'PeerBoardSDK' },
   ],
   // Indicate here external modules you don't wanna include in your bundle (i.e.: 'lodash')
   external: [],
