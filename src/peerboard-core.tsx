@@ -4,6 +4,7 @@ const PEERBOARD_EMBED_SDK_URL = 'https://static.peerboard.com/embed/embed.js';
 interface Options {
   prefix?: string;
   jwtToken?: string;
+  anon?: boolean;
   // Number is the main approach *px string is legacy
   minHeight?: number|string;
   onPathChanged?: (forumPath: string) => void;
@@ -27,18 +28,16 @@ interface InternalSDKOptions {
   prefixProxy?: string;
   baseURL?: string;
 
-  // Authentication parameters
   jwtToken?: string;
+  anon?: boolean; // Will logout user if she is logged in
   wpPayload?: string;
 
   path?: string;
 
-  // Auto resize iframe to occupy
-  // all necessary space to render full page
-  // i.e. make it behave like simple div
+
   resize?: boolean;
-  // Number is the main approach *px string is legacy
   minHeight?: string|number;
+
   hideMenu?: boolean;
   disableViewportSync?: boolean;
 
