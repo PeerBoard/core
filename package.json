@@ -1,6 +1,6 @@
 {
   "name": "@peerboard/core",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "description": "peerboard.com frontend components",
   "keywords": [
     "forum",
