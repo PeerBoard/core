@@ -124,11 +124,29 @@ export const createForum = (forumID: number, container: HTMLElement, options: Re
     if (!forumSDK) {
       throw new Error("Forum should be loaded at the moment.");
     }
-    forumSDK.createForum(forumID, container, opts);
+
+    return new Promise((resolve, reject) => {
+      const api = (forumSDK as PeerboardSDKEmbedScript).createForum(forumID, container, {
+        ...opts,
+        onFail: () => {
+          if (opts.onFail) {
+            opts.onFail();
+          }
+          reject(new Error("failed to initialize PeerBoard iframe internals"))
+        },
+        onReady: () => {
+          if (opts.onReady) {
+            opts.onReady();
+          }
+          resolve(api);
+        },
+      });
+    });
   }).catch((err) => {
     console.error("Error creating forum: ", err)
     if (options.onFail) {
       options.onFail();
     }
+    throw err;
   });
 };
