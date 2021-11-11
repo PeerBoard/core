@@ -105,7 +105,7 @@ const defaultOptions: Readonly<Options> = {
   onPathChanged: newPath => window.history.replaceState({}, window.document.title, newPath)
 };
 
-export const createForum = (forumID: number, container: HTMLElement, options: Readonly<Options>) => {
+export const createForum = (forumID: number, container: HTMLElement, options: Readonly<Options>): Promise<ForumAPI> => {
   const opts: InternalSDKOptions = {
     ...defaultOptions,
     scrollToTopOnNavigationChanged: true,
@@ -120,7 +120,7 @@ export const createForum = (forumID: number, container: HTMLElement, options: Re
 
   Object.assign(opts, options);
 
-  return loadSdk(options.sdkURL).then(() => {
+  return loadSdk(options.sdkURL).then((): Promise<ForumAPI> => {
     if (!forumSDK) {
       throw new Error("Forum should be loaded at the moment.");
     }
