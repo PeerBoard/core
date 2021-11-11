@@ -10,6 +10,7 @@ interface Options {
   onPathChanged?: (forumPath: string) => void;
   onTitleChanged?: (title: string) => void;
   onCustomProfile?: (url: string) => void;
+  onExternalLogin?: (url: string) => void;
   onReady?: () => void;
   onFail?: () => void;
 
@@ -44,6 +45,7 @@ interface InternalSDKOptions {
   onPathChanged?: (forumPath: string) => void;
   onTitleChanged?: (title: string) => void;
   onCustomProfile?: (url: string) => void;
+  onExternalLogin?: (url: string) => void;
   onReady?: () => void;
   onFail?: () => void;
 
@@ -102,7 +104,7 @@ const defaultOptions: Readonly<Options> = {
   baseURL: `https://peerboard.${window.document.location.hostname}`,
   sdkURL: PEERBOARD_EMBED_SDK_URL,
   onTitleChanged: title => window.document.title = title,
-  onPathChanged: newPath => window.history.replaceState({}, window.document.title, newPath)
+  onPathChanged: newPath => window.history.replaceState({}, window.document.title, newPath),
 };
 
 export const createForum = (forumID: number, container: HTMLElement, options: Readonly<Options>): Promise<ForumAPI> => {
