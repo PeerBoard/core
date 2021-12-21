@@ -21,6 +21,8 @@ interface Options {
   sdkURL?: string;
   resize?: boolean;
   hideMenu?: boolean;
+
+  usePathFromQs?: boolean;
 }
 
 interface InternalSDKOptions {
@@ -50,6 +52,7 @@ interface InternalSDKOptions {
   // Internal parameters
   scrollToTopOnNavigationChanged?: boolean;
   sendReferrer?: boolean;
+  usePathFromQs?: boolean;
 }
 
 export interface ForumAPI {
@@ -111,11 +114,13 @@ export const createForum = (forumID: number, container: HTMLElement, options: Re
     scrollToTopOnNavigationChanged: true,
   };
 
-  if (options.prefix) {
+  if (!opts.usePathFromQs) {
     // Auto resolve redirect
-    const prefixRgx = new RegExp(`^\/${trimLeftSlash(options.prefix)}`);
-    const pathnameWithoutPrefix = document.location.pathname.replace(prefixRgx, '');
-    opts.path = pathnameWithoutPrefix + document.location.search + document.location.hash;
+    opts.path = (
+      (options.prefix && options.prefix !== "/")
+        ? document.location.pathname.replace(new RegExp(`^\/${trimLeftSlash(options.prefix)}`), '')
+        : document.location.pathname
+    ) + document.location.search + document.location.hash;
   }
 
   Object.assign(opts, options);
