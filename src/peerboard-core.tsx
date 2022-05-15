@@ -1,17 +1,43 @@
 const PEERBOARD_EMBED_SDK_URL = 'https://static.peerboard.com/embed/embed.js';
 
-// TODO: Expose our internal embed sdk typings
-interface Options {
-  prefix?: string;
+export enum ExcludeOptions {
+  Subdomain = 'subdomain',
+  QueryParams = 'query'
+}
+
+export interface TitleOptions {
+  onTitleChanged?: (title: string) => void;
+}
+
+export interface SdkUrlOptions {
+  sdkURL?: string;
+}
+
+export interface LoginOptions {
+  /**
+   * Authentication parameters
+   */
   jwtToken?: string;
+  thinkificAuth?: string;
+}
+
+export interface FunctionOptions {
+  // TODO: Should we stick with Promise.catch style instead?
+  onReady?: () => void;
+  onFail?: () => void; // TODO: Also call on init errors.
+  onLogout?: () => void;
+}
+
+export interface WidgetOptions extends FunctionOptions, LoginOptions, SdkUrlOptions, TitleOptions {}
+
+// TODO: Expose our internal embed sdk typings
+interface Options extends FunctionOptions, LoginOptions, TitleOptions{
+  prefix?: string;
   anon?: boolean;
   // Number is the main approach *px string is legacy
   minHeight?: number|string;
   onPathChanged?: (forumPath: string) => void;
-  onTitleChanged?: (title: string) => void;
   onCustomProfile?: (url: string) => void;
-  onReady?: () => void;
-  onFail?: () => void;
 
   // If something is broken with requested path autodetect
   path?: string;
@@ -25,12 +51,11 @@ interface Options {
   usePathFromQs?: boolean;
 }
 
-interface InternalSDKOptions {
+interface InternalSDKOptions extends FunctionOptions, LoginOptions{
   prefix?: string;
   prefixProxy?: string;
   baseURL?: string;
 
-  jwtToken?: string;
   anon?: boolean; // Will logout user if she is logged in
   wpPayload?: string;
 
@@ -46,8 +71,6 @@ interface InternalSDKOptions {
   onPathChanged?: (forumPath: string) => void;
   onTitleChanged?: (title: string) => void;
   onCustomProfile?: (url: string) => void;
-  onReady?: () => void;
-  onFail?: () => void;
 
   // Internal parameters
   scrollToTopOnNavigationChanged?: boolean;
@@ -65,6 +88,13 @@ export interface PeerboardSDKEmbedScript {
     container: HTMLElement,
     options: InternalSDKOptions,
   ): ForumAPI
+  createCommentsWidget (
+    communityID: number,
+    exclude: ExcludeOptions[],
+    container: HTMLElement,
+    spaceID: number,
+    options: WidgetOptions
+  ) : ForumAPI
 }
 
 const trimLeftSlash = (str: string): string =>
@@ -155,3 +185,42 @@ export const createForum = (forumID: number, container: HTMLElement, options: Re
     throw err;
   });
 };
+
+export const createCommentsWidget = (
+  communityID: number,
+  container: HTMLElement,
+  exclude: ExcludeOptions[],
+  spaceID: number = 0,
+  options: Readonly<WidgetOptions>,
+): Promise<ForumAPI> => {
+  return loadSdk(options.sdkURL).then((): Promise<ForumAPI> => {
+    if (!forumSDK) {
+      throw new Error("Forum should be loaded at the moment.");
+    }
+
+    return new Promise((resolve, reject) => {
+      const api = (forumSDK as PeerboardSDKEmbedScript).createCommentsWidget(communityID, exclude, container, spaceID, {
+        ...options,
+        onFail: () => {
+          if (options.onFail) {
+            options.onFail();
+          }
+          console.log({onFail: true});
+          reject(new Error("failed to initialize PeerBoard iframe internals"))
+        },
+        onReady: () => {
+          if (options.onReady) {
+            options.onReady();
+          }
+          resolve(api);
+        },
+      });
+    });
+  }).catch((err) => {
+    console.error("Error creating forum: ", err)
+    if (options.onFail) {
+      options.onFail();
+    }
+    throw err;
+  });
+}
