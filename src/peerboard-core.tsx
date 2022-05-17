@@ -31,7 +31,7 @@ export interface FunctionOptions {
 export interface WidgetOptions extends FunctionOptions, LoginOptions, SdkUrlOptions, TitleOptions {}
 
 // TODO: Expose our internal embed sdk typings
-interface Options extends FunctionOptions, LoginOptions, TitleOptions{
+interface Options extends FunctionOptions, LoginOptions, SdkUrlOptions, TitleOptions{
   prefix?: string;
   anon?: boolean;
   // Number is the main approach *px string is legacy
@@ -44,7 +44,6 @@ interface Options extends FunctionOptions, LoginOptions, TitleOptions{
 
   // Dev only
   baseURL?: string;
-  sdkURL?: string;
   resize?: boolean;
   hideMenu?: boolean;
 
@@ -205,7 +204,6 @@ export const createCommentsWidget = (
           if (options.onFail) {
             options.onFail();
           }
-          console.log({onFail: true});
           reject(new Error("failed to initialize PeerBoard iframe internals"))
         },
         onReady: () => {
