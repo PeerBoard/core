@@ -18,7 +18,6 @@ export interface LoginOptions {
    * Authentication parameters
    */
   jwtToken?: string;
-  thinkificAuth?: string;
 }
 
 export interface FunctionOptions {
