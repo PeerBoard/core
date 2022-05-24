@@ -86,7 +86,7 @@ export interface PeerboardSDKEmbedScript {
     container: HTMLElement,
     options: InternalSDKOptions,
   ): ForumAPI
-  createCommentsWidget (
+  createCommentWidget (
     communityID: number,
     exclude: ExcludeOptions[],
     container: HTMLElement,
@@ -197,7 +197,7 @@ export const createCommentsWidget = (
     }
 
     return new Promise((resolve, reject) => {
-      const api = (forumSDK as PeerboardSDKEmbedScript).createCommentsWidget(communityID, exclude, container, spaceID, {
+      const api = (forumSDK as PeerboardSDKEmbedScript).createCommentWidget(communityID, exclude, container, spaceID, {
         ...options,
         onFail: () => {
           if (options.onFail) {
