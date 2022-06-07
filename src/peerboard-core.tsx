@@ -184,7 +184,7 @@ export const createForum = (forumID: number, container: HTMLElement, options: Re
   });
 };
 
-export const createCommentsWidget = (
+export const createCommentWidget = (
   communityID: number,
   container: HTMLElement,
   exclude: ExcludeOptions[],
