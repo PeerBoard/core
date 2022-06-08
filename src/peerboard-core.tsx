@@ -5,6 +5,16 @@ export enum ExcludeOptions {
   QueryParams = 'query'
 }
 
+export interface UrlOptions {
+  /**
+   * May be used for testing or if a customer or platform has several
+   * subdomains and want to show the same forum everywhere
+   * Also this option is used to implement proxy integration type in WordPress
+   * baseUrl+prefixProxy TODO: Remove the prefixProxy parameter on WP side
+   */
+  baseURL?: string;
+}
+
 export interface TitleOptions {
   onTitleChanged?: (title: string) => void;
 }
@@ -27,10 +37,10 @@ export interface FunctionOptions {
   onLogout?: () => void;
 }
 
-export interface WidgetOptions extends FunctionOptions, LoginOptions, SdkUrlOptions, TitleOptions {}
+export interface WidgetOptions extends FunctionOptions, LoginOptions, SdkUrlOptions, TitleOptions, UrlOptions {}
 
 // TODO: Expose our internal embed sdk typings
-interface Options extends FunctionOptions, LoginOptions, SdkUrlOptions, TitleOptions{
+interface Options extends FunctionOptions, LoginOptions, SdkUrlOptions, TitleOptions, UrlOptions {
   prefix?: string;
   anon?: boolean;
   // Number is the main approach *px string is legacy
@@ -42,7 +52,6 @@ interface Options extends FunctionOptions, LoginOptions, SdkUrlOptions, TitleOpt
   path?: string;
 
   // Dev only
-  baseURL?: string;
   resize?: boolean;
   hideMenu?: boolean;
 
@@ -191,6 +200,13 @@ export const createCommentWidget = (
   spaceID: number = 0,
   options: Readonly<WidgetOptions>,
 ): Promise<ForumAPI> => {
+  const opts: InternalSDKOptions = {
+    ...defaultOptions,
+    scrollToTopOnNavigationChanged: true,
+  };
+
+  Object.assign(opts, options);
+
   return loadSdk(options.sdkURL).then((): Promise<ForumAPI> => {
     if (!forumSDK) {
       throw new Error("Forum should be loaded at the moment.");
@@ -198,16 +214,16 @@ export const createCommentWidget = (
 
     return new Promise((resolve, reject) => {
       const api = (forumSDK as PeerboardSDKEmbedScript).createCommentWidget(communityID, exclude, container, spaceID, {
-        ...options,
+        ...opts,
         onFail: () => {
-          if (options.onFail) {
-            options.onFail();
+          if (opts.onFail) {
+            opts.onFail();
           }
           reject(new Error("failed to initialize PeerBoard iframe internals"))
         },
         onReady: () => {
-          if (options.onReady) {
-            options.onReady();
+          if (opts.onReady) {
+            opts.onReady();
           }
           resolve(api);
         },
@@ -215,8 +231,8 @@ export const createCommentWidget = (
     });
   }).catch((err) => {
     console.error("Error creating forum: ", err)
-    if (options.onFail) {
-      options.onFail();
+    if (opts.onFail) {
+      opts.onFail();
     }
     throw err;
   });
