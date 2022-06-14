@@ -210,7 +210,8 @@ export const createCommentWidget = (
   const opts: InternalSDKOptions = {
     ...defaultOptions,
     scrollToTopOnNavigationChanged: true,
-    onPathChanged: () => true,
+    // tslint:disable-next-line:no-empty
+    onPathChanged: () => {},
   };
 
   Object.assign(opts, options);
