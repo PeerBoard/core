@@ -37,7 +37,14 @@ export interface FunctionOptions {
   onLogout?: () => void;
 }
 
-export interface WidgetOptions extends FunctionOptions, LoginOptions, SdkUrlOptions, TitleOptions, UrlOptions {}
+export interface PostOptions {
+  title?: string,
+  content?: string,
+}
+
+export interface WidgetOptions extends FunctionOptions, LoginOptions, SdkUrlOptions, TitleOptions, UrlOptions {
+  postOptions?: PostOptions,
+}
 
 // TODO: Expose our internal embed sdk typings
 interface Options extends FunctionOptions, LoginOptions, SdkUrlOptions, TitleOptions, UrlOptions {
@@ -203,6 +210,7 @@ export const createCommentWidget = (
   const opts: InternalSDKOptions = {
     ...defaultOptions,
     scrollToTopOnNavigationChanged: true,
+    onPathChanged: () => true,
   };
 
   Object.assign(opts, options);
