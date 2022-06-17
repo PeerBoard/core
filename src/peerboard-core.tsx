@@ -15,6 +15,22 @@ export interface UrlOptions {
   baseURL?: string;
 }
 
+/**
+ * User passes JWT Token signed with a secret community token with commenting widget settings
+ * {
+ *   creds: {
+ *     post_author: {
+ *       external_user_id: string
+ *       user_id: int
+ *       email: string
+ *     }
+ *   }
+ *  }
+ */
+export interface WidgetJWTOptions {
+  widgetToken?: string
+}
+
 export interface TitleOptions {
   onTitleChanged?: (title: string) => void;
 }
@@ -42,7 +58,13 @@ export interface PostOptions {
   content?: string,
 }
 
-export interface WidgetOptions extends FunctionOptions, LoginOptions, SdkUrlOptions, TitleOptions, UrlOptions {
+export interface WidgetOptions extends FunctionOptions,
+  LoginOptions,
+  SdkUrlOptions,
+  TitleOptions,
+  UrlOptions,
+  WidgetJWTOptions
+{
   postOptions?: PostOptions,
 }
 
@@ -210,7 +232,8 @@ export const createCommentWidget = (
   const opts: InternalSDKOptions = {
     ...defaultOptions,
     scrollToTopOnNavigationChanged: true,
-    onPathChanged: () => true,
+    // tslint:disable-next-line:no-empty
+    onPathChanged: () => {},
   };
 
   Object.assign(opts, options);
