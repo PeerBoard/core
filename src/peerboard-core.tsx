@@ -66,6 +66,7 @@ export interface WidgetOptions extends FunctionOptions,
   WidgetJWTOptions
 {
   postOptions?: PostOptions,
+  enableCommunityLink?: boolean
 }
 
 // TODO: Expose our internal embed sdk typings
