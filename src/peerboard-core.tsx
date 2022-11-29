@@ -182,10 +182,11 @@ export const createForum = (forumID: number, container: HTMLElement, options: Re
   };
 
   if (!opts.usePathFromQs) {
-    // Auto resolve redirect
+    // Auto resolve final location
     opts.path = (
       (options.prefix && options.prefix !== "/")
-        ? document.location.pathname.replace(new RegExp(`^\/${trimLeftSlash(options.prefix)}`), '')
+        // Cut everything before the prefix to support /{lang}/{prefix}/{peer-board-path} cases
+        ? document.location.pathname.replace(new RegExp(`.*\/${trimLeftSlash(options.prefix)}`), '')
         : document.location.pathname
     ) + document.location.search + document.location.hash;
   }
