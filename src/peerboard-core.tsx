@@ -179,19 +179,33 @@ export const createForum = (forumID: number, container: HTMLElement, options: Re
   const opts: InternalSDKOptions = {
     ...defaultOptions,
     scrollToTopOnNavigationChanged: true,
+    ...options,
   };
 
   if (!opts.usePathFromQs) {
-    // Auto resolve final location
-    opts.path = (
-      (options.prefix && options.prefix !== "/")
-        // Cut everything before the prefix to support /{lang}/{prefix}/{peer-board-path} cases
-        ? document.location.pathname.replace(new RegExp(`.*\/${trimLeftSlash(options.prefix)}`), '')
-        : document.location.pathname
-    ) + document.location.search + document.location.hash;
+    // Auto resolve final location using part after the prefix
+    if (opts.prefix && opts.prefix !== "/") {
+      // Cut everything before the prefix to support /{lang}/{prefix}/{peer-board-path} cases
+      const matches = new RegExp(`(.*\/${trimLeftSlash(opts.prefix)})(.*)`).exec(document.location.pathname);
+      // Let's use current path and the root as best guess
+      let prefix = document.location.pathname;
+      let pbProductPath = "/";
+      if (matches) {
+        if (matches[1]) {
+          prefix = matches[1];
+        }
+        if (matches[2]) {
+          pbProductPath = matches[2];
+        }
+      }
+      opts.prefix = prefix; // override prefix to calculate proper path updates in remote embed script
+      opts.path = "/" + trimLeftSlash(pbProductPath);
+    } else {
+      // TODO: For the root we cannot reliably detect language, country codes guess?
+      opts.path = document.location.pathname;
+    }
+    opts.path += document.location.search + document.location.hash;
   }
-
-  Object.assign(opts, options);
 
   return loadSdk(options.sdkURL).then((): Promise<ForumAPI> => {
     if (!forumSDK) {
