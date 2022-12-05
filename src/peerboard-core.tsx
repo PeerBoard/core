@@ -166,18 +166,22 @@ export const loadSdk = (embedSDKURL?: string) => {
   });
 }
 
-const defaultOptions: Readonly<Options> = {
+const defaultOptions: () => Readonly<Options> = () => ({
   resize: true,
   hideMenu: true,
   baseURL: `https://peerboard.${window.document.location.hostname}`,
   sdkURL: PEERBOARD_EMBED_SDK_URL,
   onTitleChanged: title => window.document.title = title,
   onPathChanged: newPath => window.history.replaceState({}, window.document.title, newPath)
-};
+});
 
-export const createForum = (forumID: number, container: HTMLElement, options: Readonly<Options>): Promise<ForumAPI> => {
+export const createForum = (forumID: number, container: HTMLElement, options: Readonly<Options>): Promise<ForumAPI|null> => {
+  if (typeof window === 'undefined') {
+    console.warn('peerboard: window is not defined, cannot create forum, potentially used in ssr');
+    return Promise.resolve(null);
+  }
   const opts: InternalSDKOptions = {
-    ...defaultOptions,
+    ...defaultOptions(),
     scrollToTopOnNavigationChanged: true,
     ...options,
   };
@@ -244,9 +248,13 @@ export const createCommentWidget = (
   exclude: ExcludeOptions[],
   spaceID: number = 0,
   options: Readonly<WidgetOptions>,
-): Promise<ForumAPI> => {
+): Promise<ForumAPI|null> => {
+  if (typeof window === 'undefined') {
+    console.warn('peerboard: window is not defined, cannot create forum, potentially used in ssr');
+    return Promise.resolve(null);
+  }
   const opts: InternalSDKOptions = {
-    ...defaultOptions,
+    ...defaultOptions(),
     scrollToTopOnNavigationChanged: true,
     // tslint:disable-next-line:no-empty
     onPathChanged: () => {},
