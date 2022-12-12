@@ -186,11 +186,16 @@ export const createForum = (forumID: number, container: HTMLElement, options: Re
     ...options,
   };
 
+  const usesHashRouting = opts?.prefix?.includes("#");
   if (!opts.usePathFromQs) {
     // Auto resolve final location using part after the prefix
     if (opts.prefix && opts.prefix !== "/") {
+      let pathname = document.location.pathname;
+      if (usesHashRouting) {
+        pathname += document.location.hash;
+      }
       // Cut everything before the prefix to support /{lang}/{prefix}/{peer-board-path} cases
-      const matches = new RegExp(`(.*\/${trimLeftSlash(opts.prefix)})(.*)`).exec(document.location.pathname);
+      const matches = new RegExp(`(.*\/${trimLeftSlash(opts.prefix)})(.*)`).exec(pathname);
       // Let's use current path and the root as best guess
       let prefix = document.location.pathname;
       let pbProductPath = "/";
@@ -208,7 +213,10 @@ export const createForum = (forumID: number, container: HTMLElement, options: Re
       // TODO: For the root we cannot reliably detect language, country codes guess?
       opts.path = document.location.pathname;
     }
-    opts.path += document.location.search + document.location.hash;
+    // No need to add extra stuff since it's already counted at path in hash routing case
+    if (!usesHashRouting) {
+      opts.path += document.location.search + document.location.hash;
+    }
   }
 
   return loadSdk(options.sdkURL).then((): Promise<ForumAPI> => {
