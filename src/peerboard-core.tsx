@@ -213,7 +213,7 @@ export const createForum = (forumID: number, container: HTMLElement, options: Re
       // TODO: For the root we cannot reliably detect language, country codes guess?
       opts.path = document.location.pathname;
     }
-    // No need to add extra staff since it's already counted at path in hash routing case
+    // No need to add extra stuff since it's already counted at path in hash routing case
     if (!usesHashRouting) {
       opts.path += document.location.search + document.location.hash;
     }
