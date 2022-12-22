@@ -12,7 +12,7 @@ export interface UrlOptions {
    * Also this option is used to implement proxy integration type in WordPress
    * baseUrl+prefixProxy TODO: Remove the prefixProxy parameter on WP side
    */
-  baseURL?: string;
+  baseURL?: string; // TODO: Remove extra parameter from options to be able to validate it
 }
 
 /**
@@ -69,8 +69,7 @@ export interface WidgetOptions extends FunctionOptions,
   enableCommunityLink?: boolean
 }
 
-// TODO: Expose our internal embed sdk typings
-interface Options extends FunctionOptions, LoginOptions, SdkUrlOptions, TitleOptions, UrlOptions {
+export interface Options extends FunctionOptions, LoginOptions, SdkUrlOptions, TitleOptions, UrlOptions {
   prefix?: string;
   anon?: boolean;
   // Number is the main approach *px string is legacy
@@ -134,9 +133,6 @@ export interface PeerboardSDKEmbedScript {
   ) : ForumAPI
 }
 
-const trimLeftSlash = (str: string): string =>
-  str.startsWith('/') ? str.substr(1) : str;
-
 let forumSDK: PeerboardSDKEmbedScript | null = null;
 let loadingSDK: Promise<void> | null = null;
 export const loadSdk = (embedSDKURL?: string) => {
@@ -166,60 +162,13 @@ export const loadSdk = (embedSDKURL?: string) => {
   });
 }
 
-const defaultOptions: () => Readonly<Options> = () => ({
-  resize: true,
-  hideMenu: true,
-  baseURL: `https://peerboard.${window.document.location.hostname}`,
-  sdkURL: PEERBOARD_EMBED_SDK_URL,
-  onTitleChanged: title => window.document.title = title,
-  onPathChanged: newPath => window.history.replaceState({}, window.document.title, newPath)
-});
-
-export const createForum = (forumID: number, container: HTMLElement, options: Readonly<Options>): Promise<ForumAPI|null> => {
+export const createForum = (forumID: number, container: HTMLElement, opts: Readonly<Options>): Promise<ForumAPI|null> => {
   if (typeof window === 'undefined') {
     console.warn('peerboard: window is not defined, cannot create forum, potentially used in ssr');
     return Promise.resolve(null);
   }
-  const opts: InternalSDKOptions = {
-    ...defaultOptions(),
-    scrollToTopOnNavigationChanged: true,
-    ...options,
-  };
 
-  const usesHashRouting = opts?.prefix?.includes("#");
-  if (!opts.usePathFromQs) {
-    // Auto resolve final location using part after the prefix
-    if (opts.prefix && opts.prefix !== "/") {
-      let pathname = document.location.pathname;
-      if (usesHashRouting) {
-        pathname += document.location.hash;
-      }
-      // Cut everything before the prefix to support /{lang}/{prefix}/{peer-board-path} cases
-      const matches = new RegExp(`(.*\/${trimLeftSlash(opts.prefix)})(.*)`).exec(pathname);
-      // Let's use current path and the root as best guess
-      let prefix = document.location.pathname;
-      let pbProductPath = "/";
-      if (matches) {
-        if (matches[1]) {
-          prefix = matches[1];
-        }
-        if (matches[2]) {
-          pbProductPath = matches[2];
-        }
-      }
-      opts.prefix = prefix; // override prefix to calculate proper path updates in remote embed script
-      opts.path = "/" + trimLeftSlash(pbProductPath);
-    } else {
-      // TODO: For the root we cannot reliably detect language, country codes guess?
-      opts.path = document.location.pathname;
-    }
-    // No need to add extra stuff since it's already counted at path in hash routing case
-    if (!usesHashRouting) {
-      opts.path += document.location.search + document.location.hash;
-    }
-  }
-
-  return loadSdk(options.sdkURL).then((): Promise<ForumAPI> => {
+  return loadSdk(opts.sdkURL).then((): Promise<ForumAPI> => {
     if (!forumSDK) {
       throw new Error("Forum should be loaded at the moment.");
     }
@@ -243,8 +192,8 @@ export const createForum = (forumID: number, container: HTMLElement, options: Re
     });
   }).catch((err) => {
     console.error("Error creating forum: ", err)
-    if (options.onFail) {
-      options.onFail();
+    if (opts.onFail) {
+      opts.onFail();
     }
     throw err;
   });
@@ -255,22 +204,14 @@ export const createCommentWidget = (
   container: HTMLElement,
   exclude: ExcludeOptions[],
   spaceID: number = 0,
-  options: Readonly<WidgetOptions>,
+  opts: Readonly<WidgetOptions>,
 ): Promise<ForumAPI|null> => {
   if (typeof window === 'undefined') {
     console.warn('peerboard: window is not defined, cannot create forum, potentially used in ssr');
     return Promise.resolve(null);
   }
-  const opts: InternalSDKOptions = {
-    ...defaultOptions(),
-    scrollToTopOnNavigationChanged: true,
-    // tslint:disable-next-line:no-empty
-    onPathChanged: () => {},
-  };
 
-  Object.assign(opts, options);
-
-  return loadSdk(options.sdkURL).then((): Promise<ForumAPI> => {
+  return loadSdk(opts.sdkURL).then((): Promise<ForumAPI> => {
     if (!forumSDK) {
       throw new Error("Forum should be loaded at the moment.");
     }
